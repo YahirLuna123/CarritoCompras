@@ -1,48 +1,25 @@
 import sqlite3
 import bcrypt
-from getpass import getpass
+from security import Seguridad
 import sys
 
-class User:
-    Incremento = 0
-    def __init__(self, nombre, contrasena, correo, numero):
-        self.nombre = nombre
-        self.contrasena = contrasena
-        self.correo = correo
-        self.numero = numero
-        self.acceso = False
+# se corto la funcion de usuario para otra clase
 
-class Admin(User):
-    def __init__(self, nombre, contrasena, correo, numero):
-        super().__init__(nombre, contrasena, correo, numero)
+# Se corto la funcion de conectar base de datos para otra clase
 
-class Producto:
-    def __init__(self, nombre, precio, cantidad):
-        self.nombre = nombre
-        self.precio = precio
-        self.cantidad = cantidad
-
-class Carrito:
-    def __init__(self):
-        self.lista_productos = []
-
-def connect_database():
-    conexion = sqlite3.connect('DataBaseMercado.db')
-    cursorDB = conexion.cursor()
-    return conexion, cursorDB
-
-def close_database(conexion):
-    conexion.close()
+# AQUÍ IMPORTAMOS NUESTROS NUEVOS MÓDULOS
+from database import connect_database, close_database
+from models import User, Admin, Producto, Carrito
 
 def register_user(cursorDB, conexion):
     print("[-------¡Holaaaa!, Bienvenid@ nuevo usuario a nuestra app MercadoVentas-------]") 
     name = input("\nIngrese su nombre completo: ")
-    password = getpass("Ingrese una contraseña (¡Recuérdala siempre! ;D): ")
-    passwordC = getpass("Confirma tu contraseña: ")
+    password = Seguridad.ingresar_contrasena("Ingrese una contraseña (¡Recuérdala siempre! ;D): ")
+    passwordC = Seguridad.ingresar_contrasena("Confirma tu contraseña: ")
     while password != passwordC:
         print("\n¡Uups!, parece que las contraseñas no coinciden, vuelve a intentarlo\n")
-        password = getpass("Ingrese una contraseña (¡Recuérdala siempre! ;D): ")
-        passwordC = getpass("Confirma tu contraseña: ")
+        password = Seguridad.ingresar_contrasena("Ingrese una contraseña (¡Recuérdala siempre! ;D): ")
+        passwordC = Seguridad.ingresar_contrasena("Confirma tu contraseña: ")
     pwd = password.encode('utf-8')
     encrypt1 = bcrypt.gensalt()
     contraEncriptada = bcrypt.hashpw(pwd, encrypt1)     
@@ -57,12 +34,12 @@ def register_user(cursorDB, conexion):
 def register_admin(cursorDB, conexion):
     print("[-------¡Holaaaa!, Bienvenid@ nuevo empleado a nuestra app MercadoVentas-------]")
     name = input("\nIngrese su nombre completo: ")
-    password = getpass("Ingrese una contraseña (¡Recuérdala siempre! ;D): ")
-    passwordC = getpass("Confirma tu contraseña: ") 
+    password = Seguridad.ingresar_contrasena("Ingrese una contraseña (¡Recuérdala siempre! ;D): ")
+    passwordC = Seguridad.ingresar_contrasena("Confirma tu contraseña: ") 
     while password != passwordC:
         print("\n¡Uups!, parece que las contraseñas no coinciden, vuelve a intentarlo\n")
-        password = getpass("Ingrese una contraseña (¡Recuérdala siempre! ;D): ")
-        passwordC = getpass("Confirma tu contraseña: ")    
+        password = Seguridad.ingresar_contrasena("Ingrese una contraseña (¡Recuérdala siempre! ;D): ")
+        passwordC = Seguridad.ingresar_contrasena("Confirma tu contraseña: ")    
     pwd = password.encode('utf-8')
     encrypt2 = bcrypt.gensalt()
     contraEncriptada = bcrypt.hashpw(pwd, encrypt2)    
@@ -77,7 +54,7 @@ def login():
     print("\n[-------¡Holaaaa!, Bienvenid@ a nuestra app MercadoVentas-------]\n")
     mail = input("Ingrese su correo: ")
     conexion, cursorDB = connect_database()
-    password = getpass("Ingrese su contraseña: ")
+    password = Seguridad.ingresar_contrasena("Ingrese su contraseña: ")
     cursorDB.execute("SELECT CORREO, CONTRASENA FROM USUARIOS WHERE CORREO = ?", (mail,))
     user = cursorDB.fetchone() 
     if user:
@@ -306,7 +283,7 @@ def menu():
             opcion1:str = input()
             if opcion1 == "1":
                 register_admin(cursorDB, conexion)
-            elif opcion == "2":
+            elif opcion1 == "2": # ¡AQUÍ ESTABA EL ERROR! Cambiamos 'opcion' por 'opcion1'
                 register_user(cursorDB, conexion)
             else:
                 print("\nOpción inválida crrrrrack, vuelve a intentarlo")
