@@ -51,8 +51,9 @@ def register_admin(cursorDB, conexion):
 def login():
     print("\n[-------¡Holaaaa!, Bienvenid@ a nuestra app MercadoVentas-------]\n")
     mail = input("Ingrese su correo: ")
-    conexion, cursorDB = connect_database()
     password = Seguridad.ingresar_contrasena("Ingrese su contraseña: ")
+    
+    # Validar Usuario
     cursorDB.execute("SELECT CORREO, CONTRASENA FROM USUARIOS WHERE CORREO = ?", (mail,))
     user = cursorDB.fetchone() 
     if user:
@@ -64,6 +65,8 @@ def login():
             userID = cursorDB.fetchone()
             InterfazU(name, userID, cursorDB, conexion)
             return
+            
+    # Validar Empleado
     cursorDB.execute("SELECT CORREO, CONTRASENA FROM EMPLEADOS WHERE CORREO = ?", (mail,))
     empleado = cursorDB.fetchone()
     if empleado:
@@ -75,8 +78,8 @@ def login():
             userID = cursorDB.fetchone()
             Interfaz(name, userID, cursorDB, conexion)
             return
+            
     print("Lo siento, los datos proporcionados no coinciden, favor de intentarlo denuevo")
-    close_database(conexion)
     login()
 
 def InterfazU(name, userID, cursorDB, conexion):
