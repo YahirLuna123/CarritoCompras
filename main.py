@@ -1,5 +1,5 @@
 import sqlite3
-import bcrypt
+import hashlib
 from security import Seguridad
 import sys
 
@@ -22,9 +22,7 @@ def register_user(cursorDB, conexion):
         print("\n¡Uups!, parece que las contraseñas no coinciden, vuelve a intentarlo\n")
         password = Seguridad.ingresar_contrasena("Ingrese una contraseña (¡Recuérdala siempre! ;D): ")
         passwordC = Seguridad.ingresar_contrasena("Confirma tu contraseña: ")
-    pwd = password.encode('utf-8')
-    encrypt1 = bcrypt.gensalt()
-    contraEncriptada = bcrypt.hashpw(pwd, encrypt1)     
+    contraEncriptada = hashlib.sha256(password.encode('utf-8')).hexdigest()   
     mail = input("Ingrese su correo electrónico: ")
     numeroT = input("Ingrese su número de teléfono: ")
     new_user = User(name, contraEncriptada, mail, numeroT)
@@ -42,9 +40,7 @@ def register_admin(cursorDB, conexion):
         print("\n¡Uups!, parece que las contraseñas no coinciden, vuelve a intentarlo\n")
         password = Seguridad.ingresar_contrasena("Ingrese una contraseña (¡Recuérdala siempre! ;D): ")
         passwordC = Seguridad.ingresar_contrasena("Confirma tu contraseña: ")    
-    pwd = password.encode('utf-8')
-    encrypt2 = bcrypt.gensalt()
-    contraEncriptada = bcrypt.hashpw(pwd, encrypt2)    
+    contraEncriptada = hashlib.sha256(password.encode('utf-8')).hexdigest()
     mail = input("Ingrese su correo electrónico: ")
     numeroT = input("Ingrese su número de teléfono: ")
     cursorDB.execute("INSERT INTO EMPLEADOS VALUES (?,?,?,?,?,?)", (None, name, contraEncriptada, mail, numeroT, 0.00))
@@ -61,7 +57,7 @@ def login():
     user = cursorDB.fetchone() 
     if user:
         stored_password = user[1]
-        if bcrypt.checkpw(password.encode('utf-8'), stored_password):
+        if hashlib.sha256(password.encode('utf-8')).hexdigest() == stored_password:
             cursorDB.execute("SELECT NOMBRE FROM USUARIOS")
             name = cursorDB.fetchone()
             cursorDB.execute("SELECT ID FROM USUARIOS")
@@ -72,7 +68,7 @@ def login():
     empleado = cursorDB.fetchone()
     if empleado:
         stored_password = empleado[1]
-        if bcrypt.checkpw(password.encode('utf-8'), stored_password):
+        if hashlib.sha256(password.encode('utf-8')).hexdigest() == stored_password:
             cursorDB.execute("SELECT NOMBRE FROM EMPLEADOS")
             name = cursorDB.fetchone()
             cursorDB.execute("SELECT ID FROM USUARIOS")

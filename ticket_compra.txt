@@ -1,0 +1,9 @@
+=== TICKET DE COMPRA MERCADOVENTAS ===
+Cliente: Usuario Prueba
+----------------------------------------
+2x Escritorio - $1000.00
+----------------------------------------
+Total a pagar: $1000.00
+Efectivo recibido: $2000.00
+Cambio devuelto: $1000.00
+¡Gracias por su compra!
