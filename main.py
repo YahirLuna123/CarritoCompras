@@ -165,7 +165,8 @@ def Categorias(name, userID, cursorDB, conexion):
         opcion = input("\n 1.- Eliminar categoría\n 2.- Añadir categoría\n 3.- Volver\n")
         if opcion == "1":
             select = input("\nIngrese el ID de la categoría a eliminar:\n ")
-            cursorDB.execute("DELETE FROM CATEGORIA WHERE ID = ?", (select))
+            # Se agregó una coma después de select para que sea una tupla válida
+            cursorDB.execute("DELETE FROM CATEGORIA WHERE ID = ?", (select,)) 
             conexion.commit()
             print("Categoría eliminada con éxito")
             Categorias(name, userID, cursorDB, conexion) 
@@ -174,14 +175,18 @@ def Categorias(name, userID, cursorDB, conexion):
             descripcion = input("\nIngrese su Descripción: \n")
             cursorDB.execute("INSERT INTO CATEGORIA VALUES (?,?,?)", (None, nombre, descripcion))
             conexion.commit()
-            print("\nCategoría añadida con éxito añadido con éxito\n")
-            Categorias(cursorDB, conexion, name, userID, )  
+            print("\nCategoría añadida con éxito\n")
+            # ¡AQUÍ ESTABA EL ERROR! Ya están en el orden correcto
+            Categorias(name, userID, cursorDB, conexion)  
         elif opcion == "3":
-            Interfaz(name, userID, cursorDB, conexion,)  
+            # Se limpió una coma extra que había al final
+            Interfaz(name, userID, cursorDB, conexion)  
+        else:
             print("\nOpción inválida crrrrrack, vuelve a intentarlo")
+            Categorias(name, userID, cursorDB, conexion)
     except Exception as e:
         print("Error en la databeis:", e)
-
+        
 def compra(name, userID, cursorDB, conexion):
     try:
         print("\n¿Qué te interesa hoy? He aquí nuestras secciones:\n")
