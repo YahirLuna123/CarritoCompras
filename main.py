@@ -3,6 +3,7 @@ import bcrypt
 from security import Seguridad
 import sys
 
+
 # se corto la funcion de usuario para otra clase
 
 # Se corto la funcion de conectar base de datos para otra clase
@@ -10,6 +11,7 @@ import sys
 # AQUÍ IMPORTAMOS NUESTROS NUEVOS MÓDULOS
 from database import connect_database, close_database
 from models import User, Admin, Producto, Carrito
+from caja import CajaRegistradora
 
 def register_user(cursorDB, conexion):
     print("[-------¡Holaaaa!, Bienvenid@ nuevo usuario a nuestra app MercadoVentas-------]") 
@@ -237,8 +239,15 @@ def venta(name, userID, cursorDB, conexion):
             WHERE Carrito_Compras.USER_ID = ?
             """, (userID[0],)) 
         cosas_carrito = cursorDB.fetchall()
+        
+        if not cosas_carrito:
+            print("\nTu carrito está vacío.")
+            InterfazU(name, userID, cursorDB, conexion)
+            return
+
         for cosa in cosas_carrito:
             print("ID: ", cosa[0], "Producto:", cosa[1], "Categoría:", cosa[4])
+            
         opcion:str = input("\n 1.- Proceder al pago\n 2.- Eliminar artículo\n 3.- Regresar\n")
         if opcion == "1":
             total = 0
@@ -248,7 +257,28 @@ def venta(name, userID, cursorDB, conexion):
                 cantidad = cosa[3]
                 subtotal = precio_unidad * cantidad
                 total += subtotal
-                print("Producto:", nombre_producto, "Categoría:", cosa[3], "Cantidad:", cantidad, "Precio unitario:", precio_unidad, "Subtotal:", subtotal)
+                print("Producto:", nombre_producto, "Cantidad:", cantidad, "Precio unitario: $", precio_unidad, "Subtotal: $", subtotal)
+
+            opcion_compra = input("\n¿Pasar a la caja para pagar y confirmar compra?\n 1.- Si \n 2.- Regresar\n")
+            if opcion_compra == "1":
+                # --- AQUÍ LLAMAMOS A NUESTRA NUEVA CLASE ---
+                exito = CajaRegistradora.procesar_pago_y_ticket(name[0], cosas_carrito, total)
+                
+                if exito:
+                    # Si el cobro fue exitoso, guardamos en la Base de Datos
+                    for cosa in cosas_carrito:
+                        cursorDB.execute("INSERT INTO VENTAS VALUES (?,?,?,?)", (None, userID[0], cosa[0], cosa[2]*cosa[3]))
+                    
+                    cursorDB.execute("DELETE FROM Carrito_Compras WHERE USER_ID = ?", (userID[0],))
+                    conexion.commit()
+                    print("\n¡Compra registrada en la base de datos con éxito!")
+                    InterfazU(name, userID, cursorDB, conexion)
+                else:
+                    print("\nHubo un problema con el pago. Volviendo al carrito...")
+                    venta(name, userID, cursorDB, conexion)
+            else:
+                venta(name, userID, cursorDB, conexion)
+
         elif opcion == "2":
             id_articulo = input("\nIngrese el ID del artículo a eliminar: ")
             cursorDB.execute("DELETE FROM Carrito_Compras WHERE USER_ID = ? AND ID = ?", (userID[0], id_articulo))
@@ -260,17 +290,10 @@ def venta(name, userID, cursorDB, conexion):
         else:
             print("\nOpción inválida crrrrrack, vuelve a intentarlo")
             venta(name, userID, cursorDB, conexion)
-        print("\nTotal a pagar:", total)
-        opcion:str = input("\n¿Desea continuar?\n 1.- Si \n 2.- Regresar\n")
-        if opcion == "1":
-            cursorDB.execute("DELETE FROM Carrito_Compras WHERE USER_ID = ?", (userID))
-            cursorDB.execute("INSERT INTO VENTAS VALUES (?,?,?,?)", (None, userID[0], cosa[0], subtotal))
-            conexion.commit()
-            print("\nCompra realizada con éxito. Pronto llegará a tu casa porque sé dónde vives guap@\n")
-            InterfazU(name, userID, cursorDB, conexion)
+            
     except Exception as e:
         print("Error:", e)
-
+        
 def menu():
     try:
         print("\n[-------¡Holaaaa!, Bienvenid@ a nuestra app MercadoVentas-------]\n")
